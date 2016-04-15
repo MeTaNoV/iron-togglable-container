@@ -1,0 +1,244 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<link rel="import" href="../iron-behaviors/iron-control-state.html">
+<link rel="import" href="../iron-behaviors/iron-button-state.html">
+<!--
+`<iron-toggable-container>` is a container that can be toggled to show alternate content.
+It supports a vertical and horizontal transition, and the transition duration and properties
+can be customized.
+
+Example:
+
+    <iron-toggable-container>
+      <div class="on"></div>
+      <div class="off"></div>
+    </iron-toggable-container>
+
+### Styling
+
+The following custom properties / mixins are available for styling:
+
+Custom property | Description | Default
+----------------|-------------|----------
+`--iron-toggable-container` | Mixin applied to the element. | `{}`
+`--iron-toggable-container-on` | Mixin applied to the on part. | `{}`
+`--iron-toggable-container-off` | Mixin applied to the off part. | `{}`
+`--iron-toggable-container-label` | Mixin applied to the labels part. | `{}`
+
+@element iron-toggable-container
+@demo demo/index.html Standard Demo
+-->
+<dom-module id="iron-toggable-container">
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        @apply(--iron-toggable-container);
+      }
+      #on, #off {
+        position: absolute;
+        will-change: left, width, top, height, transform;
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+      }
+      #on {
+        background-color: var(--light-primary-color);
+        @apply(--iron-toggable-container-on);
+      }
+      #off {
+        background-color: var(--dark-primary-color);
+        @apply(--iron-toggable-container-off);
+      }
+      .label {
+        color: var(--secondary-text-color);
+        @apply(--iron-toggable-container-label);
+      }
+      .label.on {
+        background-color: var(--dark-primary-color);
+      }
+      .label.off {
+        background-color: var(--light-primary-color);
+      }
+    </style>
+    <template is="dom-if" if="![[noBar]]">
+      <div id="bar"></div>      
+    </template>
+    <div id="on">
+      <template is="dom-if" if="![[noLabel]]">
+        <span class="on label">[[labelOn]]</span>
+      </template>
+      <content select=".on">          
+    </div>
+    <div id="off">
+      <template is="dom-if" if="![[noLabel]]">
+        <span class="off label">[[labelOff]]</span>
+      </template>
+      <content select=".off"></content>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+
+  Polymer({
+    is: 'iron-toggable-container',
+
+    behaviors: [
+      Polymer.IronButtonState,
+      Polymer.IronControlState
+    ],
+
+    properties: {
+      /**
+       * We overload the behavior value to be readonly and true in our case
+       */
+      toggles: {
+        type: Boolean,
+        value: true,
+        readOnly: true,
+        reflectToAttribute: true
+      },
+
+      /**
+       * The direction taken by the bar to toggle to on.
+       * Values can be: 
+       *   - left to right (ltr)
+       *   - right to left (rtl)
+       *   - top to bottom (ttb)
+       *   - bottom to top (btt)
+       */
+      direction: {
+        type: String,
+        value: 'ltr'
+      },
+
+      /**
+       * Label value when in `On` state.
+       */
+      labelOn: {
+        type: String,
+        value: 'On'
+      },
+
+      /**
+       * Label value when in `Off` state.
+       */
+      labelOff: {
+        type: String,
+        value: 'Off'
+      },
+
+      /**
+       * If true, then the labels are not displayed.
+       */
+      noLabel: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * If true, then the bar is not displayed.
+       */
+      noBar: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * If true, then the container will not allow pulling.
+       */
+      disabled: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * The CSS transition duration applied while pulling back.
+       */
+      transitionDuration: {
+        type: String,
+        value: '500ms'
+      },
+
+      /**
+       * The CSS transition timing function applied while pulling back.
+       */
+      transitionTimingFunction: {
+        type: String,
+        value: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+      },
+
+    },
+
+    observers: [
+      '_onActiveChanged(active)'
+    ],
+
+    listeners: {
+      // 'tap': '_onTap'
+    },
+
+    ready: function() {
+      if (this.active) {
+        this.$.on.style.zIndex = 2;
+        this.$.off.style.display = 'none';
+      } else {
+        this.$.off.style.zIndex = 2;
+        this.$.on.style.display = 'none';
+      }
+    },
+
+    attached: function() {
+      this.listen(this.$.on, 'webkitTransitionEnd', '_onTransitionEnd');
+      this.listen(this.$.on, 'transitionend', '_onTransitionEnd');
+      this.listen(this.$.off, 'webkitTransitionEnd', '_onTransitionEnd');
+      this.listen(this.$.off, 'transitionend', '_onTransitionEnd');
+    },
+
+    detached: function() {
+      this.unlisten(this.$.on, 'webkitTransitionEnd', '_onTransitionEnd');
+      this.unlisten(this.$.on, 'transitionend', '_onTransitionEnd');
+      this.unlisten(this.$.off, 'webkitTransitionEnd', '_onTransitionEnd');
+      this.unlisten(this.$.off, 'transitionend', '_onTransitionEnd');
+    },
+
+    _onActiveChanged: function(active) {
+      if (this.active) {
+        this.$.on.style.zIndex = 1;
+        this.$.on.style.display = 'block';
+        this._computeTransition(this.$.off);
+        this._animateContainer(this.$.off, 'x', -this.offsetWidth);
+      } else {
+        this.$.off.style.zIndex = 1;
+        this.$.off.style.display = 'block';
+        this._computeTransition(this.$.on);
+        this._animateContainer(this.$.on, 'x', this.offsetWidth);
+      }
+    },
+
+    _animateContainer: function(container, direction, value) {
+      container.style.left = value+'px';
+      this.translate3d(-value+'px', '0px', '0px', container);
+    },
+
+    _onTransitionEnd: function(event) {
+      if (this.active) {
+        this.$.off.style.display = 'none';
+        this.$.on.style.zIndex = 2;
+      } else {
+        this.$.on.style.display = 'none';
+        this.$.off.style.zIndex = 2;
+      }
+    },
+
+    // Helper functions
+    _computeTransition: function(node) {
+      node.style.transitionProperty = 'left,width,top,height,transform';
+      node.style.transitionDuration = this.transitionDuration;
+      node.style.transitionTimingFunction = this.transitionTimingFunction;
+    }
+  });
+</script>

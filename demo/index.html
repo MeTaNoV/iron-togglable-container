@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>iron-toggable-container demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="../iron-toggable-container.html">
+  <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
+  <link rel="import" href="../../paper-styles/default-theme.html">
+  <link rel="import" href="../../paper-styles/demo-pages.html">
+  <link rel="import" href="../../paper-styles/color.html">
+
+  <style is="custom-style">
+    /* If you want your things to transition nicely, you might want to disable
+     * text selection on those elements. */
+    iron-toggable-container {
+      height: 240px;
+    }
+  </style>
+
+</head>
+<body unresolved>
+  <template is="dom-bind">
+    <div class="horizontal-section-container">
+      <div class="horizontal-section">
+        <h1>Standard</h1>
+        <iron-toggable-container>
+          <div class="on">Toogle me Off!</div>
+          <div class="off">Toogle me On!</div>
+        </iron-toggable-container>
+      </div>
+    </div>
+  </template>
+  <script>
+    var scope = document.querySelector('template[is="dom-bind"]');
+  </script>
+</body>
+</html>
